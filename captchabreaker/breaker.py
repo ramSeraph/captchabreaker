@@ -16,23 +16,39 @@ tokenizer_base = Tokenizer(charset)
 
 _transform = None
 _ort_session = None
+_cache_dir = None
 
 def get_cache_dir():
     """Get cache directory for the model."""
+    global _cache_dir
+
+    if _cache_dir is not None:
+        return _cache_dir
+
     if os.name == 'nt':
         cache_dir = pathlib.Path.home() / 'AppData' / 'Local' / 'captchabreaker'
     else:
         cache_dir = pathlib.Path.home() / '.cache' / 'captchabreaker'
-    cache_dir.mkdir(parents=True, exist_ok=True)
+
     return cache_dir
+
+def set_cache_dir(path: str):
+    """Set custom cache directory for the model."""
+    global _cache_dir
+    print(f"Setting cache directory to: {path}")
+    _cache_dir = pathlib.Path(path)
 
 def download_model():
     """Download the model if it doesn't exist in the cache."""
+
     cache_dir = get_cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
     model_path = cache_dir / model_file_name
     if not model_path.exists():
         print(f"Downloading model to {model_path}...")
         urllib.request.urlretrieve(model_url, model_path)
+
     return model_path
 
 def get_transform(img_size):
